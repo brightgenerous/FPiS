@@ -20,9 +20,9 @@ object Exercise0202 {
 
   def main(args: Array[String]): Unit = {
     Seq(
-      (Array(1, 2, 3), (a: Int, b: Int) => a < b),
-      (Array(1, 2, 3), (a: Int, b: Int) => a > b),
-      (Array(1, 3, 2), (a: Int, b: Int) => a < b)
+      (Array(1, 2, 2, 3), (a: Int, b: Int) => a <= b),
+      (Array(1, 2, 2, 3), (a: Int, b: Int) => a >= b),
+      (Array(1, 2, 3, 2), (a: Int, b: Int) => a <= b)
     ).foreach { array_func =>
       val (array, func) = array_func
       println(isSorted(array, func))
