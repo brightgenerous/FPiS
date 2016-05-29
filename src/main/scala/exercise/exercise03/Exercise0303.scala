@@ -1,6 +1,6 @@
-package exercise03
+package exercise.exercise03
 
-import datastructures.List
+import fpinscala.datastructures.List
 
 object Exercise0303 {
 

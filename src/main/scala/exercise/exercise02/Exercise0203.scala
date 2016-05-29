@@ -1,4 +1,4 @@
-package exercise02
+package exercise.exercise02
 
 object Exercise0203 {
 
