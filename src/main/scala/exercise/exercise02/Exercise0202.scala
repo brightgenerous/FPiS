@@ -15,7 +15,8 @@ object Exercise0202 {
       else
         false
 
-    isSorted_inner(as.head, as.tail)
+    if (as.isEmpty) true
+    else isSorted_inner(as.head, as.tail)
   }
 
   def main(args: Array[String]): Unit = {
