@@ -61,9 +61,11 @@ object List {
     }
   }
 
-  def foldRight[A, B](as: List[A], z: B)(f: (A, B) => B): B = as match {
+  def foldRight[A, B]: (List[A], B) => ((A, B) => B) => B = foldRightL
+
+  def foldRight2[A, B](as: List[A], z: B)(f: (A, B) => B): B = as match {
     case Nil => z
-    case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+    case Cons(x, xs) => f(x, foldRight2(xs, z)(f))
   }
 
   def foldRightL[A, B](as: List[A], z: B)(f: (A, B) => B): B = {
@@ -72,16 +74,16 @@ object List {
     // -> proc: (B => B, A) => (B => B) が決まる
     val acc: B => B = (z: B) => z
     val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
-    foldLeft(acc, as)(proc)(z)
+    foldLeft(as, acc)(proc)(z)
   }
 
   @tailrec
-  def foldLeft[A, B](z: B, as: List[A])(f: (B, A) => B): B = as match {
+  def foldLeft[A, B](as: List[A], z: B)(f: (B, A) => B): B = as match {
     case Nil => z
-    case Cons(x, xs) => foldLeft(f(z, x), xs)(f)
+    case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
   }
 
-  def foldLeftR[A, B](z: B, as: List[A])(f: (B, A) => B): B = {
+  def foldLeftR[A, B](as: List[A], z: B)(f: (B, A) => B): B = {
     // 最終的に foldRight が返すのは B => B
     // -> acc: B => B が決まる
     // -> proc: (A, B => B) => (B => B) が決まる
@@ -96,7 +98,7 @@ object List {
     foldRight(as, 0)((_, z) => z + 1)
 
   def lengthL[A](as: List[A]): Int =
-    foldLeft(0, as)((z, _) => z + 1)
+    foldLeft(as, 0)((z, _) => z + 1)
 
   def reverse[A]: List[A] => List[A] = reverseL
 
@@ -127,7 +129,7 @@ object List {
     foldRight(ints, 0)(_ + _)
 
   def sumL(ints: List[Int]): Int =
-    foldLeft(0, ints)(_ + _)
+    foldLeft(ints, 0)(_ + _)
 
   val product = productL(_)
 
@@ -141,5 +143,5 @@ object List {
     foldRight(ds, 1.0)(_ * _)
 
   def productL(ds: List[Double]): Double =
-    foldLeft(1.0, ds)(_ * _)
+    foldLeft(ds, 1.0)(_ * _)
 }
