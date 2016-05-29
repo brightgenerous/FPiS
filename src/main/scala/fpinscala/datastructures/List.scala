@@ -64,8 +64,8 @@ object List {
   def foldRight[A, B]: (List[A], B) => ((A, B) => B) => B = foldRightL
 
   def foldRight2[A, B](as: List[A], z: B)(f: (A, B) => B): B = as match {
-    case Nil => z
     case Cons(x, xs) => f(x, foldRight2(xs, z)(f))
+    case _ => z
   }
 
   def foldRightL[A, B](as: List[A], z: B)(f: (A, B) => B): B = {
@@ -77,10 +77,23 @@ object List {
     foldLeft(as, acc)(proc)(z)
   }
 
+  def foldRightShortcutL[A, B](as: List[A], z: B)(f: (A, B) => B)(v: B, p: A => Boolean): B = {
+    val acc: B => B = (z: B) => z
+    val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
+    foldLeftShortcut(as, acc)(proc)((z: B) => v, p)(z)
+  }
+
   @tailrec
   def foldLeft[A, B](as: List[A], z: B)(f: (B, A) => B): B = as match {
-    case Nil => z
     case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
+    case _ => z
+  }
+
+  @tailrec
+  def foldLeftShortcut[A, B](as: List[A], z: B)(f: (B, A) => B)(v: B, p: A => Boolean): B = as match {
+    case Cons(x, xs) if p(x) => v
+    case Cons(x, xs) => foldLeftShortcut(xs, f(z, x))(f)(v, p)
+    case _ => z
   }
 
   def foldLeftR[A, B](as: List[A], z: B)(f: (B, A) => B): B = {
@@ -131,7 +144,7 @@ object List {
   def sumL(ints: List[Int]): Int =
     foldLeft(ints, 0)(_ + _)
 
-  val product = productL(_)
+  val product = productShortcutL(_)
 
   def product2(ds: List[Double]): Double = ds match {
     case Cons(0.0, _) => 0.0
@@ -144,4 +157,10 @@ object List {
 
   def productL(ds: List[Double]): Double =
     foldLeft(ds, 1.0)(_ * _)
+
+  def productShortcutL(ds: List[Double]): Double =
+    foldLeftShortcut(ds, 1.0)(_ * _)(0.0, _ == 0.0)
+
+  def productShortcutR(ds: List[Double]): Double =
+    foldRightShortcutL(ds, 1.0)(_ * _)(0.0, _ == 0.0)
 }
