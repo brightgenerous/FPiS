@@ -83,6 +83,9 @@ object List {
   def lengthL[A](as: List[A]): Int =
     foldLeft(0, as)((z, _) => z + 1)
 
+  def reverse[A](as: List[A]): List[A] =
+    foldLeft(Nil: List[A], as)((z, n) => Cons(n, z))
+
   def sum(ints: List[Int]): Int = ints match {
     case Cons(x, xs) => x + sum(xs)
     case _ => 0
