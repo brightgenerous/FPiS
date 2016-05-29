@@ -50,6 +50,11 @@ object List {
   def setHead[A](l: List[A], n: A): List[A] =
     Cons(n, tail(l))
 
+  def append[A](a1: List[A], a2: List[A]): List[A] = a1 match {
+    case Nil => a2
+    case Cons(head, tail) => Cons(head, append(tail, a2))
+  }
+
   def apply[A](as: A*): List[A] =
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
