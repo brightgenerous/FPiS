@@ -12,6 +12,7 @@ object List {
 
   def apply[A](as: A*): List[A] = {
 
+    // @tailrec
     def apply_inner(as: Seq[A]): List[A] =
       if (as.isEmpty) Nil
       else Cons(as.head, apply_inner(as.tail))
@@ -55,6 +56,7 @@ object List {
 
   def init[A](l: List[A]): List[A] = {
 
+    // @tailrec
     def init_inner(lst: List[A]): List[A] = lst match {
       case Cons(_, Nil) => Nil
       case Cons(x, xs) => Cons(x, init_inner(xs))
@@ -165,19 +167,19 @@ object List {
 
   def append[A]: (List[A], List[A]) => List[A] = appendR
 
-  def append2[A](a1: List[A], a2: List[A]): List[A] = {
+  def append2[A](as1: List[A], as2: List[A]): List[A] = {
 
     // @tailrec
     def append2_inner(lst1: List[A]): List[A] = lst1 match {
       case Cons(x, xs) => Cons(x, append2_inner(xs))
-      case _ => a2
+      case _ => as2
     }
 
-    append2_inner(a1)
+    append2_inner(as1)
   }
 
-  def appendR[A](a1: List[A], a2: List[A]): List[A] =
-    foldRight(a1, a2)((n, z) => Cons(n, z))
+  def appendR[A](as1: List[A], as2: List[A]): List[A] =
+    foldRight(as1, as2)((n, z) => Cons(n, z))
 
   def flatten[A](as: List[List[A]]): List[A] =
     foldRight(as, Nil: List[A])(append(_, _))
@@ -200,9 +202,6 @@ object List {
 
   def sumR(ints: List[Int]): Int =
     foldRight(ints, 0)(_ + _)
-
-  def incrementAll(ints: List[Int]): List[Int] =
-    foldRight(ints, Nil: List[Int])((n, z) => Cons(n + 1, z))
 
   val product = productShortcutL(_)
 
@@ -230,11 +229,17 @@ object List {
   def productShortcutR(ds: List[Double]): Double =
     foldRightShortcut(ds, 1.0)(_ * _)(0.0, _ == 0.0)
 
+  def incrementAll(ints: List[Int]): List[Int] =
+    foldRight(ints, Nil: List[Int])((n, z) => Cons(n + 1, z))
+
   def toStringAll(ds: List[Double]): List[String] =
     foldRight(ds, Nil: List[String])((n, z) => Cons(n.toString, z))
 
   def map[A, B](as: List[A])(f: A => B): List[B] =
     foldRight(as, Nil: List[B])((n, z) => Cons(f(n), z))
+
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
+    foldRight(as, Nil: List[B])((n, z) => append(f(n), z))
 
   def filter[A](as: List[A])(f: A => Boolean): List[A] =
     foldRight(as, Nil: List[A])((n, z) => if (f(n)) Cons(n, z) else z)
@@ -242,17 +247,14 @@ object List {
   def filterFM[A](as: List[A])(f: A => Boolean): List[A] =
     flatMap(as)(n => if (f(n)) List(n) else List())
 
-  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
-    foldRight(as, Nil: List[B])((n, z) => append(f(n), z))
-
   def zipWith[A, B, C](as1: List[A], as2: List[B])(f: (A, B) => C): List[C] =
     foldRightTwin(as1, as2, Nil: List[C])((n1, n2, z) => Cons(f(n1, n2), z))
 
-  def zipAdd(a1: List[Int], a2: List[Int]): List[Int] = {
-    foldRightTwin(a1, a2, Nil: List[Int])((n1, n2, z) => Cons(n1 + n2, z))
+  def zipAdd(as1: List[Int], as2: List[Int]): List[Int] = {
+    foldRightTwin(as1, as2, Nil: List[Int])((n1, n2, z) => Cons(n1 + n2, z))
   }
 
-  def zipAdd2(a1: List[Int], a2: List[Int]): List[Int] = {
+  def zipAdd2(as1: List[Int], as2: List[Int]): List[Int] = {
 
     // @tailrec
     def zipAdd_inner(lst1: List[Int], lst2: List[Int]): List[Int] = (lst1, lst2) match {
@@ -260,6 +262,6 @@ object List {
       case _ => Nil
     }
 
-    zipAdd_inner(a1, a2)
+    zipAdd_inner(as1, as2)
   }
 }
