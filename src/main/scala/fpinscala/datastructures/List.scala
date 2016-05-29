@@ -207,4 +207,7 @@ object List {
 
   def productShortcutR(ds: List[Double]): Double =
     foldRightShortcut(ds, 1.0)(_ * _)(0.0, _ == 0.0)
+
+  def toStringAll(ds: List[Double]): List[String] =
+    foldRight(ds, Nil: List[String])((n, z) => Cons(n.toString, z))
 }
