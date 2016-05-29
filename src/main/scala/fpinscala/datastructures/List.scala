@@ -72,41 +72,51 @@ object List {
     case Cons(x, xs) => foldLeft(f(z, x), xs)(f)
   }
 
-  def length[A](as: List[A]): Int =
+  def length[A]: List[A] => Int = lengthL
+
+  def lengthR[A](as: List[A]): Int =
     foldRight(as, 0)((_, z) => z + 1)
 
   def lengthL[A](as: List[A]): Int =
     foldLeft(0, as)((z, _) => z + 1)
 
-  def reverse[A](as: List[A]): List[A] =
+  def reverse[A]: List[A] => List[A] = reverseL
+
+  def reverseL[A](as: List[A]): List[A] =
     foldLeft(Nil: List[A], as)((z, n) => Cons(n, z))
 
-  def append[A](a1: List[A], a2: List[A]): List[A] = a1 match {
-    case Cons(h, t) => Cons(h, append(t, a2))
+  def append[A]: (List[A], List[A]) => List[A] = appendR
+
+  def append2[A](a1: List[A], a2: List[A]): List[A] = a1 match {
+    case Cons(h, t) => Cons(h, append2(t, a2))
     case _ => a2
   }
 
   def appendR[A](a1: List[A], a2: List[A]): List[A] =
     foldRight(a1, a2)((n, z) => Cons(n, z))
 
-  def sum(ints: List[Int]): Int = ints match {
+  val sum = sumL(_)
+
+  def sum2(ints: List[Int]): Int = ints match {
     case Cons(x, xs) => x + sum(xs)
     case _ => 0
   }
 
-  def sum2(ints: List[Int]): Int =
+  def sumR(ints: List[Int]): Int =
     foldRight(ints, 0)(_ + _)
 
   def sumL(ints: List[Int]): Int =
     foldLeft(0, ints)(_ + _)
 
-  def product(ds: List[Double]): Double = ds match {
+  val product = productL(_)
+
+  def product2(ds: List[Double]): Double = ds match {
     case Cons(0.0, _) => 0.0
     case Cons(x, xs) => x * product(xs)
     case _ => 1.0
   }
 
-  def product2(ds: List[Double]): Double =
+  def productR(ds: List[Double]): Double =
     foldRight(ds, 1.0)(_ * _)
 
   def productL(ds: List[Double]): Double =
