@@ -66,14 +66,25 @@ object List {
     case _ => a2
   }
 
+  def foldRight[A, B](as: List[A], z: B)(f: (A, B) => B): B = as match {
+    case Nil => z
+    case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+  }
+
   def sum(ints: List[Int]): Int = ints match {
     case Cons(x, xs) => x + sum(xs)
     case _ => 0
   }
+
+  def sum2(ints: List[Int]): Int =
+    foldRight(ints, 0)(_ + _)
 
   def product(ds: List[Double]): Double = ds match {
     case Cons(0.0, _) => 0.0
     case Cons(x, xs) => x * product(xs)
     case _ => 1.0
   }
+
+  def product2(ds: List[Double]): Double =
+    foldRight(ds, 1.0)(_ * _)
 }
