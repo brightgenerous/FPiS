@@ -61,9 +61,6 @@ object List {
     }
   }
 
-  def length[A](as: List[A]): Int =
-    foldRight(as, 0)((_, z) => z + 1)
-
   def append[A](a1: List[A], a2: List[A]): List[A] = a1 match {
     case Cons(h, t) => Cons(h, append(t, a2))
     case _ => a2
@@ -80,6 +77,12 @@ object List {
     case Cons(x, xs) => foldLeft(f(z, x), xs)(f)
   }
 
+  def length[A](as: List[A]): Int =
+    foldRight(as, 0)((_, z) => z + 1)
+
+  def lengthL[A](as: List[A]): Int =
+    foldLeft(0, as)((z, _) => z + 1)
+
   def sum(ints: List[Int]): Int = ints match {
     case Cons(x, xs) => x + sum(xs)
     case _ => 0
@@ -87,6 +90,9 @@ object List {
 
   def sum2(ints: List[Int]): Int =
     foldRight(ints, 0)(_ + _)
+
+  def sumL(ints: List[Int]): Int =
+    foldLeft(0, ints)(_ + _)
 
   def product(ds: List[Double]): Double = ds match {
     case Cons(0.0, _) => 0.0
@@ -96,4 +102,7 @@ object List {
 
   def product2(ds: List[Double]): Double =
     foldRight(ds, 1.0)(_ * _)
+
+  def productL(ds: List[Double]): Double =
+    foldLeft(1.0, ds)(_ * _)
 }
