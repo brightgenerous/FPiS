@@ -37,7 +37,7 @@ object List {
     drop_inner(l, n)
   }
 
-  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = {
+  def dropWhile[A](l: List[A])(f: A => Boolean): List[A] = {
 
     @tailrec
     def dropWhile_inner(lst: List[A]): List[A] = lst match {
