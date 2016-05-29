@@ -210,4 +210,7 @@ object List {
 
   def toStringAll(ds: List[Double]): List[String] =
     foldRight(ds, Nil: List[String])((n, z) => Cons(n.toString, z))
+
+  def map[A, B](as: List[A])(f: A => B): List[B] =
+    foldRight(as, Nil: List[B])((n, z) => Cons(f(n), z))
 }
