@@ -77,10 +77,10 @@ object List {
     foldLeft_inner(as, z)
   }
 
-  def foldLeftTwin[A, B](as1: List[A], as2: List[A], z: B)(f: (B, A, A) => B): B = {
+  def foldLeftTwin[A, B, C](as1: List[A], as2: List[B], z: C)(f: (C, A, B) => C): C = {
 
     @tailrec
-    def foldLeftTwin_inner(lst1: List[A], lst2: List[A], acc: B): B = (lst1, lst2) match {
+    def foldLeftTwin_inner(lst1: List[A], lst2: List[B], acc: C): C = (lst1, lst2) match {
       case (Cons(x1, xs1), Cons(x2, xs2)) => foldLeftTwin_inner(xs1, xs2, f(acc, x1, x2))
       case _ => acc
     }
@@ -131,14 +131,14 @@ object List {
     foldLeft(as, acc)(proc)(z)
   }
 
-  def foldRightTwin[A, B]: (List[A], List[A], B) => ((A, A, B) => B) => B = foldRightTwinL
+  def foldRightTwin[A, B, C]: (List[A], List[B], C) => ((A, B, C) => C) => C = foldRightTwinL
 
-  def foldRightTwinL[A, B](as1: List[A], as2: List[A], z: B)(f: (A, A, B) => B): B = {
+  def foldRightTwinL[A, B, C](as1: List[A], as2: List[B], z: C)(f: (A, B, C) => C): C = {
     // 最終的に foldLeft が返すのは B => B
-    // -> acc: B => B が決まる
-    // -> proc: (B => B, A, A) => (B => B) が決まる
-    val acc: B => B = (z: B) => z
-    val proc: (B => B, A, A) => (B => B) = (acc: B => B, a1: A, a2: A) => (b: B) => acc(f(a1, a2, b))
+    // -> acc: C => C が決まる
+    // -> proc: (C => C, A, B) => (C => C) が決まる
+    val acc: C => C = (z: C) => z
+    val proc: (C => C, A, B) => (C => C) = (acc: C => C, a1: A, a2: B) => (c: C) => acc(f(a1, a2, c))
     foldLeftTwin(as1, as2, acc)(proc)(z)
   }
 
@@ -244,6 +244,9 @@ object List {
 
   def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
     foldRight(as, Nil: List[B])((n, z) => append(f(n), z))
+
+  def zipWith[A, B, C](as1: List[A], as2: List[B])(f: (A, B) => C): List[C] =
+    foldRightTwin(as1, as2, Nil: List[C])((n1, n2, z) => Cons(f(n1, n2), z))
 
   def zipAdd(a1: List[Int], a2: List[Int]): List[Int] = {
     foldRightTwin(a1, a2, Nil: List[Int])((n1, n2, z) => Cons(n1 + n2, z))
