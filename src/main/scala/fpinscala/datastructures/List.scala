@@ -95,6 +95,9 @@ object List {
   def appendR[A](a1: List[A], a2: List[A]): List[A] =
     foldRight(a1, a2)((n, z) => Cons(n, z))
 
+  def flatten[A](as: List[List[A]]): List[A] =
+    foldRight(as, Nil: List[A])(append(_, _))
+
   val sum = sumL(_)
 
   def sum2(ints: List[Int]): Int = ints match {
