@@ -277,7 +277,9 @@ object List {
     startWith_inner(as1, as2)
   }
 
-  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+  def hasSubsequence[A]: (List[A], List[A]) => Boolean = hasSubsequence3
+
+  def hasSubsequence2[A](sup: List[A], sub: List[A]): Boolean = {
 
     @tailrec
     def hasSubsequence_inner(as: List[A]): Boolean = as match {
@@ -287,5 +289,23 @@ object List {
     }
 
     hasSubsequence_inner(sup)
+  }
+
+  def hasSubsequence3[A](sup: List[A], sub: List[A]): Boolean = {
+
+    @tailrec
+    def hasSubsequence_inner(sup: List[A], subs: List[List[A]]): Boolean = sup match {
+      case Cons(x, xs) =>
+        foldRightShortcut(Cons(sub, subs), (Nil, false): (List[List[A]], Boolean)) {
+          case (n, (z, _)) if head(n) == x => (Cons(tail(n), z), false)
+          case (_, zb) => zb
+        }((Nil, true), _ == Nil) match {
+          case (_, true) => true
+          case (lst, _) => hasSubsequence_inner(xs, lst)
+        }
+      case _ => false
+    }
+
+    hasSubsequence_inner(sup, Nil)
   }
 }
