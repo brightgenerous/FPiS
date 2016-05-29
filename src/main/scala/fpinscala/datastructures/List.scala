@@ -222,4 +222,18 @@ object List {
 
   def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
     foldRight(as, Nil: List[B])((n, z) => append(f(n), z))
+
+  // TODO stack safe
+  def zipAdd: (List[Int], List[Int]) => List[Int] = zipAdd2
+
+  def zipAdd2(a1: List[Int], a2: List[Int]): List[Int] = {
+
+    // @tailrec
+    def zipAdd_inner(lst1: List[Int], lst2: List[Int]): List[Int] = (lst1, lst2) match {
+      case (Cons(x1, xs1), Cons(x2, xs2)) => Cons(x1 + x2, zipAdd_inner(xs1, xs2))
+      case _ => Nil
+    }
+
+    zipAdd_inner(a1, a2)
+  }
 }
