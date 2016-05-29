@@ -77,6 +77,17 @@ object List {
     foldLeft_inner(as, z)
   }
 
+  def foldLeftTwin[A, B](as1: List[A], as2: List[A], z: B)(f: (B, A, A) => B): B = {
+
+    @tailrec
+    def foldLeftTwin_inner(lst1: List[A], lst2: List[A], acc: B): B = (lst1, lst2) match {
+      case (Cons(x1, xs1), Cons(x2, xs2)) => foldLeftTwin_inner(xs1, xs2, f(acc, x1, x2))
+      case _ => acc
+    }
+
+    foldLeftTwin_inner(as1, as2, z)
+  }
+
   def foldLeftShortcut[A, B](as: List[A], z: B)(f: (B, A) => B)(v: B, p: A => Boolean): B = {
 
     @tailrec
@@ -118,6 +129,17 @@ object List {
     val acc: B => B = (z: B) => z
     val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
     foldLeft(as, acc)(proc)(z)
+  }
+
+  def foldRightTwin[A, B]: (List[A], List[A], B) => ((A, A, B) => B) => B = foldRightTwinL
+
+  def foldRightTwinL[A, B](as1: List[A], as2: List[A], z: B)(f: (A, A, B) => B): B = {
+    // 最終的に foldLeft が返すのは B => B
+    // -> acc: B => B が決まる
+    // -> proc: (B => B, A, A) => (B => B) が決まる
+    val acc: B => B = (z: B) => z
+    val proc: (B => B, A, A) => (B => B) = (acc: B => B, a1: A, a2: A) => (b: B) => acc(f(a1, a2, b))
+    foldLeftTwin(as1, as2, acc)(proc)(z)
   }
 
   def foldRightShortcut[A, B]: (List[A], B) => ((A, B) => B) => (B, A => Boolean) => B = foldRightShortcutL
@@ -223,8 +245,9 @@ object List {
   def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
     foldRight(as, Nil: List[B])((n, z) => append(f(n), z))
 
-  // TODO stack safe
-  def zipAdd: (List[Int], List[Int]) => List[Int] = zipAdd2
+  def zipAdd(a1: List[Int], a2: List[Int]): List[Int] = {
+    foldRightTwin(a1, a2, Nil: List[Int])((n1, n2, z) => Cons(n1 + n2, z))
+  }
 
   def zipAdd2(a1: List[Int], a2: List[Int]): List[Int] = {
 
