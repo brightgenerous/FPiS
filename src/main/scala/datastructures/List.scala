@@ -24,6 +24,9 @@ object List {
     case _ => sys.error("list is empty")
   }
 
+  def setHead[A](l: List[A], n: A): List[A] =
+    Cons(n, tail(l))
+
   def apply[A](as: A*): List[A] =
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
