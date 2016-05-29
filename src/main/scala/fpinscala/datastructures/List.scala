@@ -136,11 +136,11 @@ object List {
   def foldRightTwin[A, B, C]: (List[A], List[B], C) => ((A, B, C) => C) => C = foldRightTwinL
 
   def foldRightTwinL[A, B, C](as1: List[A], as2: List[B], z: C)(f: (A, B, C) => C): C = {
-    // 最終的に foldLeft が返すのは B => B
+    // 最終的に foldLeft が返すのは C => C
     // -> acc: C => C が決まる
     // -> proc: (C => C, A, B) => (C => C) が決まる
     val acc: C => C = (z: C) => z
-    val proc: (C => C, A, B) => (C => C) = (acc: C => C, a1: A, a2: B) => (c: C) => acc(f(a1, a2, c))
+    val proc: (C => C, A, B) => (C => C) = (acc: C => C, a: A, b: B) => (c: C) => acc(f(a, b, c))
     foldLeftTwin(as1, as2, acc)(proc)(z)
   }
 
@@ -263,5 +263,29 @@ object List {
     }
 
     zipAdd_inner(as1, as2)
+  }
+
+  def startWith[A](as1: List[A], as2: List[A]): Boolean = {
+
+    @tailrec
+    def startWith_inner(lst1: List[A], lst2: List[A]): Boolean = (lst1, lst2) match {
+      case (Cons(x1, xs1), Cons(x2, xs2)) if x1 == x2 => startWith_inner(xs1, xs2)
+      case (_, Nil) => true
+      case _ => false
+    }
+
+    startWith_inner(as1, as2)
+  }
+
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+
+    @tailrec
+    def hasSubsequence_inner(as: List[A]): Boolean = as match {
+      case _ if startWith(as, sub) => true
+      case Nil => false
+      case _ => hasSubsequence_inner(tail(as))
+    }
+
+    hasSubsequence_inner(sup)
   }
 }
