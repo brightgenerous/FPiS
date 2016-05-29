@@ -10,12 +10,17 @@ case class Cons[+A](head: A, tail: List[A]) extends List[A]
 
 object List {
 
-  def apply[A](as: A*): List[A] =
-    if (as.isEmpty) Nil
-    else Cons(as.head, apply(as.tail: _*))
+  def apply[A](as: A*): List[A] = {
+
+    def apply_inner(as: Seq[A]): List[A] =
+      if (as.isEmpty) Nil
+      else Cons(as.head, apply_inner(as.tail))
+
+    apply_inner(as)
+  }
 
   def head[A](l: List[A]): A = l match {
-    case Cons(h, t) => h
+    case Cons(x, _) => x
     case _ => sys.error("list is empty")
   }
 
@@ -23,7 +28,7 @@ object List {
     Cons(n, tail(l))
 
   def tail[A](l: List[A]): List[A] = l match {
-    case Cons(h, t) => t
+    case Cons(_, xs) => xs
     case _ => sys.error("list is empty")
   }
 
@@ -41,7 +46,7 @@ object List {
 
     @tailrec
     def dropWhile_inner(lst: List[A]): List[A] = lst match {
-      case Cons(h, t) if f(h) => dropWhile_inner(t)
+      case Cons(x, xs) if f(x) => dropWhile_inner(xs)
       case _ => lst
     }
 
@@ -51,8 +56,8 @@ object List {
   def init[A](l: List[A]): List[A] = {
 
     def init_inner(lst: List[A]): List[A] = lst match {
-      case Cons(h, Nil) => Nil
-      case Cons(h, t) => Cons(h, init_inner(t))
+      case Cons(_, Nil) => Nil
+      case Cons(x, xs) => Cons(x, init_inner(xs))
     }
 
     l match {
@@ -61,39 +66,27 @@ object List {
     }
   }
 
-  def foldRight[A, B]: (List[A], B) => ((A, B) => B) => B = foldRightL
+  def foldLeft[A, B](as: List[A], z: B)(f: (B, A) => B): B = {
 
-  def foldRight2[A, B](as: List[A], z: B)(f: (A, B) => B): B = as match {
-    case Cons(x, xs) => f(x, foldRight2(xs, z)(f))
-    case _ => z
+    @tailrec
+    def foldLeft_inner(lst: List[A], acc: B): B = lst match {
+      case Cons(x, xs) => foldLeft_inner(xs, f(acc, x))
+      case _ => acc
+    }
+
+    foldLeft_inner(as, z)
   }
 
-  def foldRightL[A, B](as: List[A], z: B)(f: (A, B) => B): B = {
-    // 最終的に foldLeft が返すのは B => B
-    // -> acc: B => B が決まる
-    // -> proc: (B => B, A) => (B => B) が決まる
-    val acc: B => B = (z: B) => z
-    val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
-    foldLeft(as, acc)(proc)(z)
-  }
+  def foldLeftShortcut[A, B](as: List[A], z: B)(f: (B, A) => B)(v: B, p: A => Boolean): B = {
 
-  def foldRightShortcutL[A, B](as: List[A], z: B)(f: (A, B) => B)(v: B, p: A => Boolean): B = {
-    val acc: B => B = (z: B) => z
-    val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
-    foldLeftShortcut(as, acc)(proc)((z: B) => v, p)(z)
-  }
+    @tailrec
+    def foldLeftShortcut_inner(lst: List[A], acc: B): B = lst match {
+      case Cons(x, _) if p(x) => v
+      case Cons(x, xs) => foldLeftShortcut_inner(xs, f(acc, x))
+      case _ => acc
+    }
 
-  @tailrec
-  def foldLeft[A, B](as: List[A], z: B)(f: (B, A) => B): B = as match {
-    case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
-    case _ => z
-  }
-
-  @tailrec
-  def foldLeftShortcut[A, B](as: List[A], z: B)(f: (B, A) => B)(v: B, p: A => Boolean): B = as match {
-    case Cons(x, xs) if p(x) => v
-    case Cons(x, xs) => foldLeftShortcut(xs, f(z, x))(f)(v, p)
-    case _ => z
+    foldLeftShortcut_inner(as, z)
   }
 
   def foldLeftR[A, B](as: List[A], z: B)(f: (B, A) => B): B = {
@@ -105,24 +98,60 @@ object List {
     foldRight(as, acc)(proc)(z)
   }
 
-  def length[A]: List[A] => Int = lengthL
+  def foldRight[A, B]: (List[A], B) => ((A, B) => B) => B = foldRightL
 
-  def lengthR[A](as: List[A]): Int =
-    foldRight(as, 0)((_, z) => z + 1)
+  def foldRight2[A, B](as: List[A], z: B)(f: (A, B) => B): B = {
+
+    // @tailrec
+    def foldRight2_inner(lst: List[A]): B = lst match {
+      case Cons(x, xs) => f(x, foldRight2_inner(xs))
+      case _ => z
+    }
+
+    foldRight2_inner(as)
+  }
+
+  def foldRightL[A, B](as: List[A], z: B)(f: (A, B) => B): B = {
+    // 最終的に foldLeft が返すのは B => B
+    // -> acc: B => B が決まる
+    // -> proc: (B => B, A) => (B => B) が決まる
+    val acc: B => B = (z: B) => z
+    val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
+    foldLeft(as, acc)(proc)(z)
+  }
+
+  def foldRightShortcut[A, B]: (List[A], B) => ((A, B) => B) => (B, A => Boolean) => B = foldRightShortcutL
+
+  def foldRightShortcutL[A, B](as: List[A], z: B)(f: (A, B) => B)(v: B, p: A => Boolean): B = {
+    val acc: B => B = (z: B) => z
+    val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
+    foldLeftShortcut(as, acc)(proc)((z: B) => v, p)(z)
+  }
+
+  def length[A]: List[A] => Int = lengthL
 
   def lengthL[A](as: List[A]): Int =
     foldLeft(as, 0)((z, _) => z + 1)
 
+  def lengthR[A](as: List[A]): Int =
+    foldRight(as, 0)((_, z) => z + 1)
+
   def reverse[A]: List[A] => List[A] = reverseL
 
   def reverseL[A](as: List[A]): List[A] =
-    foldLeft(Nil: List[A], as)((z, n) => Cons(n, z))
+    foldLeft(as, Nil: List[A])((z, n) => Cons(n, z))
 
   def append[A]: (List[A], List[A]) => List[A] = appendR
 
-  def append2[A](a1: List[A], a2: List[A]): List[A] = a1 match {
-    case Cons(h, t) => Cons(h, append2(t, a2))
-    case _ => a2
+  def append2[A](a1: List[A], a2: List[A]): List[A] = {
+
+    // @tailrec
+    def append2_inner(lst1: List[A]): List[A] = lst1 match {
+      case Cons(x, xs) => Cons(x, append2_inner(xs))
+      case _ => a2
+    }
+
+    append2_inner(a1)
   }
 
   def appendR[A](a1: List[A], a2: List[A]): List[A] =
@@ -133,34 +162,46 @@ object List {
 
   val sum = sumL(_)
 
-  def sum2(ints: List[Int]): Int = ints match {
-    case Cons(x, xs) => x + sum(xs)
-    case _ => 0
-  }
+  def sum2(ints: List[Int]): Int = {
 
-  def sumR(ints: List[Int]): Int =
-    foldRight(ints, 0)(_ + _)
+    // @tailrec
+    def sum2_inner(lst: List[Int]): Int = lst match {
+      case Cons(x, xs) => x + sum2_inner(xs)
+      case _ => 0
+    }
+
+    sum2_inner(ints)
+  }
 
   def sumL(ints: List[Int]): Int =
     foldLeft(ints, 0)(_ + _)
 
+  def sumR(ints: List[Int]): Int =
+    foldRight(ints, 0)(_ + _)
+
   val product = productShortcutL(_)
 
-  def product2(ds: List[Double]): Double = ds match {
-    case Cons(0.0, _) => 0.0
-    case Cons(x, xs) => x * product(xs)
-    case _ => 1.0
-  }
+  def product2(ds: List[Double]): Double = {
 
-  def productR(ds: List[Double]): Double =
-    foldRight(ds, 1.0)(_ * _)
+    // @tailrec
+    def product2_inner(lst: List[Double]): Double = lst match {
+      case Cons(0.0, _) => 0.0
+      case Cons(x, xs) => x * product2_inner(xs)
+      case _ => 1.0
+    }
+
+    product2_inner(ds)
+  }
 
   def productL(ds: List[Double]): Double =
     foldLeft(ds, 1.0)(_ * _)
+
+  def productR(ds: List[Double]): Double =
+    foldRight(ds, 1.0)(_ * _)
 
   def productShortcutL(ds: List[Double]): Double =
     foldLeftShortcut(ds, 1.0)(_ * _)(0.0, _ == 0.0)
 
   def productShortcutR(ds: List[Double]): Double =
-    foldRightShortcutL(ds, 1.0)(_ * _)(0.0, _ == 0.0)
+    foldRightShortcut(ds, 1.0)(_ * _)(0.0, _ == 0.0)
 }
