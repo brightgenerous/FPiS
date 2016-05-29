@@ -1,8 +1,11 @@
 package exercise03
 
-/**
-  * Created by katou on 2016/05/26.
-  */
-class Exercise0302 {
+import datastructures.List
 
+object Exercise0302 {
+
+  def exec = List.tail(List(1,2,3,4,5))
+
+  def main(args: Array[String]): Unit =
+    println(exec)
 }
