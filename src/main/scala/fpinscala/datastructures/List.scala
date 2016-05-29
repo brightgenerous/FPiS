@@ -74,6 +74,12 @@ object List {
     case Cons(x, xs) => f(x, foldRight(xs, z)(f))
   }
 
+  @tailrec
+  def foldLeft[A, B](z: B, as: List[A])(f: (B, A) => B): B = as match {
+    case Nil => z
+    case Cons(x, xs) => foldLeft(f(z, x), xs)(f)
+  }
+
   def sum(ints: List[Int]): Int = ints match {
     case Cons(x, xs) => x + sum(xs)
     case _ => 0
