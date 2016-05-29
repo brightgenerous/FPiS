@@ -66,10 +66,28 @@ object List {
     case Cons(x, xs) => f(x, foldRight(xs, z)(f))
   }
 
+  def foldRightL[A, B](as: List[A], z: B)(f: (A, B) => B): B = {
+    // 最終的に foldLeft が返すのは B => B
+    // -> acc: B => B が決まる
+    // -> proc: (B => B, A) => (B => B) が決まる
+    val acc: B => B = (z: B) => z
+    val proc: (B => B, A) => (B => B) = (acc: B => B, a: A) => (b: B) => acc(f(a, b))
+    foldLeft(acc, as)(proc)(z)
+  }
+
   @tailrec
   def foldLeft[A, B](z: B, as: List[A])(f: (B, A) => B): B = as match {
     case Nil => z
     case Cons(x, xs) => foldLeft(f(z, x), xs)(f)
+  }
+
+  def foldLeftR[A, B](z: B, as: List[A])(f: (B, A) => B): B = {
+    // 最終的に foldRight が返すのは B => B
+    // -> acc: B => B が決まる
+    // -> proc: (A, B => B) => (B => B) が決まる
+    val acc: B => B = (z: B) => z
+    val proc: (A, B => B) => (B => B) = (a: A, acc: B => B) => (b: B) => acc(f(b, a))
+    foldRight(as, acc)(proc)(z)
   }
 
   def length[A]: List[A] => Int = lengthL
