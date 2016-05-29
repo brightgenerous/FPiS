@@ -36,6 +36,17 @@ object List {
     drop_inner(l, n)
   }
 
+  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = {
+
+    @tailrec
+    def dropWhile_inner(lst: List[A]): List[A] = lst match {
+      case Cons(head, tail) if f(head) => dropWhile_inner(tail)
+      case _ => lst
+    }
+
+    dropWhile_inner(l)
+  }
+
   def setHead[A](l: List[A], n: A): List[A] =
     Cons(n, tail(l))
 
