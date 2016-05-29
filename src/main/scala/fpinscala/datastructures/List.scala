@@ -179,6 +179,9 @@ object List {
   def sumR(ints: List[Int]): Int =
     foldRight(ints, 0)(_ + _)
 
+  def incrementAll(ints: List[Int]): List[Int] =
+    foldRight(ints, Nil: List[Int])((n, z) => Cons(n + 1, z))
+
   val product = productShortcutL(_)
 
   def product2(ds: List[Double]): Double = {
